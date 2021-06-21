@@ -56,7 +56,6 @@ export class Waiter extends EventEmitter {
 			});
 			process.on('SIGINT', this.handleExit);
 			process.on('SIGQUIT', this.handleExit);
-			process.on('SIGKILL', this.handleExit);
 			process.on('SIGTERM', this.handleExit);
 		});
 	}
