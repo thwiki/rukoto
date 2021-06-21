@@ -73,20 +73,19 @@ async function initDiscord() {
 		mwn.log(`[V] Rukoto is waiting ${waiter.count} jobs to complete before exiting`);
 		mwn.log(`[W] You can forcefully exit by exiting again`);
 	});
+	waiter.wait().then(async (status) => {
+		if (status) {
+			mwn.log(`[V] Rukoto is exiting gracefully`);
+		} else {
+			mwn.log(`[V] Rukoto is exiting with ${chalk.red(`${chalk.bold(waiter.count)} incompleted job`)}`);
+		}
+		await instancer.unlock();
+		process.exit(0);
+	});
 
 	new Scheduler(bot, messenger, waiter);
 
 	mwn.log(`[V] Rukoto is working`);
 
 	process?.send?.('ready');
-
-	if (await waiter.wait()) {
-		mwn.log(`[V] Rukoto is exiting gracefully`);
-		await instancer.unlock();
-		process.exit(0);
-	} else {
-		mwn.log(`[V] Rukoto is exiting with ${chalk.red(`${chalk.bold(waiter.count)} incompleted job`)}`);
-		await instancer.unlock();
-		process.exit(0);
-	}
 })();

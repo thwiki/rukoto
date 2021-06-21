@@ -98,15 +98,16 @@ export class Messenger {
 		if (this.bot == null || this.channel == null || runners.length === 0) return;
 		const channelId = process.env.DISCORD_CHANNEL_ID;
 
-		this.bot.on('message', (msg: Discord.Message) => {
+		this.bot.on('message', async (msg: Discord.Message) => {
 			if (msg.channel.id !== channelId) return;
 
 			if (msg.content === '!restart') {
+				await msg.reply(`\`\`\`ini\n[V] Trying to restart\n\`\`\``);
 				scheduler.waiter.exit();
 				return;
 			}
 			if (msg.content === '!run') {
-				msg.reply(
+				await msg.reply(
 					`\`\`\`ini\n[Available Jobs]\n${runners
 						.map(
 							(runner) =>
@@ -120,12 +121,12 @@ export class Messenger {
 
 			const [_, command, ...args] = msg.content.split(/\s+/);
 			if (command === '') {
-				msg.reply(`\`\`\`ini\n[E] Invalid job name="${command}"\n\`\`\``);
+				await msg.reply(`\`\`\`ini\n[E] Invalid job name="${command}"\n\`\`\``);
 				return;
 			}
 			const runner = runners.find((runner) => runner.metadata.command === command);
 			if (runner == null) {
-				msg.reply(`\`\`\`ini\n[E] Failed to run unknown job="${command}"\n\`\`\``);
+				await msg.reply(`\`\`\`ini\n[E] Failed to run unknown job="${command}"\n\`\`\``);
 				return;
 			}
 			runner.run(...args);
