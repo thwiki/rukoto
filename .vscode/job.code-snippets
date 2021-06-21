@@ -1,0 +1,26 @@
+{
+	"Job Boilerplate": {
+		"scope": "typescript",
+		"prefix": "job",
+		"body": [
+			"import { mwn } from 'mwn';",
+			"import { DateTime } from 'luxon';",
+			"import { Job, Logger } from '../decorators';",
+			"",
+			"@Job({",
+			"\ttrigger: '',",
+			"\tactive: false,",
+			"})",
+			"export class ${TM_FILENAME_BASE/(^|-)([a-z]*)/${2:/capitalize}/g}$2Job {",
+			"\tconstructor(private bot: mwn, @Logger() private logger: Logger) {}",
+			"",
+			"\tasync run() {",
+			"\t\treturn true;",
+			"\t}",
+			"}",
+			""
+			
+		],
+		"description": "Insert Job Boilerplate"
+	}
+}

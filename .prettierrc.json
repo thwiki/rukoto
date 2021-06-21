@@ -1,0 +1,23 @@
+{
+	"printWidth": 140,
+	"singleQuote": true,
+	"useTabs": true,
+	"tabWidth": 4,
+	"semi": true,
+	"bracketSpacing": true,
+	"overrides": [
+		{
+			"files": "*.yml",
+			"options": {
+				"useTabs": false,
+				"tabWidth": 2
+			}
+		},
+		{
+			"files": "*.md",
+			"options": {
+				"trailingComma": "none"
+			}
+		}
+	]
+}
