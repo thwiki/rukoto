@@ -110,7 +110,7 @@ export class UpdateEventNavboxJob {
 		});
 
 		this.countryList = (await this.bot.getPagesInCategory('活动举办地区分类‎')).map((country) =>
-			this.bot.title.newFromText(country).getMain()
+			this.bot.title.newFromText(country).getMainText()
 		);
 		this.workList = workList;
 		this.charaList = charaList;
@@ -185,7 +185,7 @@ export class UpdateEventNavboxJob {
 
 		for (const event of events) {
 			event.categories = (catPages.find((catPage) => catPage.title === event.fulltext)?.categories ?? []).map((c) =>
-				this.bot.title.newFromText(c.title).getMain()
+				this.bot.title.newFromText(c.title).getMainText()
 			);
 		}
 

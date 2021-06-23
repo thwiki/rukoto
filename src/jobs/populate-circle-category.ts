@@ -12,7 +12,7 @@ export class PopulateCircleCategoryJob {
 	async run() {
 		const circles = (await new this.bot.category('同人社团').pages()).map((circle) => circle.title);
 		const circleCategories = (await new this.bot.category('社团分类').subcats()).map((circleCategory) =>
-			this.bot.title.newFromText(circleCategory.title).getMain()
+			this.bot.title.newFromText(circleCategory.title).getMainText()
 		);
 
 		const missingCircleCategories = circles
