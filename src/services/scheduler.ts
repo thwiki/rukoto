@@ -3,26 +3,27 @@ import { mwn } from 'mwn';
 import cron from 'node-cron';
 import { JobClass } from '../decorators';
 import { JobMetadata } from '../metadata';
-import { Messenger, Waiter, Token, Runner } from '.';
+import { Waiter } from './waiter';
 import { importClassesFromDirectories } from '../utils/import-classes-from-directories';
+import { Service } from 'typedi';
+import { Runner } from './runner';
 
+@Service()
 export class Scheduler {
-	public token: Token;
 	public activeRunners: Runner[] = [];
 
-	constructor(public bot: mwn, public messenger: Messenger, public waiter: Waiter) {
-		this.token = new Token(bot);
+	constructor(public waiter: Waiter) {
+		this.scheduleJobs(importClassesFromDirectories([__dirname + '/../jobs/**/*.js']));
+	}
 
-		const jobClasses: JobClass[] = importClassesFromDirectories([__dirname + '/../jobs/**/*.js']);
-		const jobClassesLength = jobClasses.length;
+	scheduleJobs(jobClasses: JobClass[]) {
+		mwn.log(`[V] Rukoto founded ${jobClasses.length} jobs`);
 
-		mwn.log(`[V] Rukoto founded ${jobClassesLength} jobs`);
-
-		for (let index = 0; index < jobClassesLength; index++) {
+		for (let index = 0; index < jobClasses.length; index++) {
 			const jobClass = jobClasses[index];
 			const jobName = jobClass.name;
 			const jobLabel = chalk.bgYellow.black(jobName);
-			mwn.log(`[i] ${jobLabel} initializing (${index + 1}/${jobClassesLength})`);
+			mwn.log(`[i] ${jobLabel} initializing (${index + 1}/${jobClasses.length})`);
 
 			try {
 				const metadata: unknown = Reflect.getMetadata('metadata', jobClass);
@@ -36,7 +37,7 @@ export class Scheduler {
 					continue;
 				}
 
-				const runner = new Runner(this, jobClass, metadata);
+				const runner = new Runner(this.waiter, jobClass, metadata);
 
 				if (metadata.trigger === '') {
 					mwn.log(`[+] ${jobLabel} runs immediately`);
@@ -59,8 +60,6 @@ export class Scheduler {
 			}
 		}
 
-		mwn.log(`[V] Rukoto started ${this.activeRunners.length} out of ${jobClassesLength} jobs\n`);
-
-		this.messenger?.command(this);
+		mwn.log(`[V] Rukoto started ${this.activeRunners.length} out of ${jobClasses.length} jobs\n`);
 	}
 }

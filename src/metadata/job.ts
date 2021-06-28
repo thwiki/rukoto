@@ -2,10 +2,10 @@ import { Timezone } from 'tz-offset';
 import { JobMetadataArgs } from './args/job';
 
 export class JobMetadata {
-	trigger: string;
-	command: string;
-	active: boolean;
-	timezone: Timezone;
+	readonly trigger: string;
+	readonly command: string;
+	readonly active: boolean;
+	readonly timezone: Timezone;
 
 	constructor(args: JobMetadataArgs) {
 		this.trigger = args.trigger;

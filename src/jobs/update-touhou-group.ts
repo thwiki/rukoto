@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { mwn } from 'mwn';
 import { DateTime } from 'luxon';
 import { Job } from '../decorators';
-import { Github } from '../services';
+import { Github } from '../services/github';
 
 interface GroupInfo {
 	build: number;

@@ -2,28 +2,22 @@ import chalk from 'chalk';
 import { randomInt } from 'crypto';
 import { mwn } from 'mwn';
 import { performance } from 'perf_hooks';
-import { Scheduler } from '.';
 import { JobClass } from '../decorators';
 import { JobMetadata, ParamMetadata } from '../metadata';
+import { Container, Service } from 'typedi';
+import { Log } from './log';
+import { Waiter } from './waiter';
+import { getClassParamTypes } from '../utils/get-class-param-types';
+import { getMethodParamTypes } from '../utils/get-method-param-types';
 
-function getParamTypes(object: object, methodName?: string): any[] {
-	return Reflect.getMetadata('design:paramtypes', object, methodName) ?? [];
-}
-
-function getArgTypes(object: object, methodName?: string): ParamMetadata[] {
-	const paramtypes: ParamMetadata[] = Reflect.getMetadata('custom:paramtypes', object, methodName) ?? [];
-	return ((Reflect.getMetadata('design:paramtypes', object, methodName) ?? []) as any[]).map((paramtype, i) => {
-		return ParamMetadata.factory({ name: `arg${i}`, type: paramtype, ...(paramtypes[i] ?? {}) });
-	});
-}
-
+@Service({ multiple: true })
 export class Runner {
-	paramTypes: any[];
-	argTypes: ParamMetadata[];
+	public readonly classParamTypes: any[];
+	public readonly methodParamTypes: ParamMetadata[];
 
-	constructor(private scheduler: Scheduler, public jobClass: JobClass, public metadata: JobMetadata) {
-		this.paramTypes = getParamTypes(jobClass);
-		this.argTypes = getArgTypes(jobClass.prototype, 'run');
+	constructor(private readonly waiter: Waiter, public readonly jobClass: JobClass, public readonly metadata: JobMetadata) {
+		this.classParamTypes = getClassParamTypes(jobClass);
+		this.methodParamTypes = getMethodParamTypes(jobClass.prototype, 'run');
 	}
 
 	run = async (...args: string[]) => {
@@ -35,23 +29,16 @@ export class Runner {
 
 		let status = false;
 		let done = false;
-		if (this.scheduler.waiter.add(1)) {
+		if (this.waiter.add(1)) {
 			const time = performance.now();
 			try {
-				const job = new this.jobClass(
-					...this.paramTypes.map((paramtype: any) => {
-						const name: string = paramtype?.name ?? '';
-						if (name === 'mwn') return this.scheduler.bot;
-						if (name === 'Messenger') return this.scheduler.messenger;
-						if (name === 'Waiter') return this.scheduler.waiter;
-						if (name === 'Token') return this.scheduler.token;
-						if (name === 'Log') return new paramtype(jobLabel);
-						return new paramtype();
-					})
-				);
+				const container = Container.of(jobName);
+				container.set(Log, new Log(jobLabel));
+				container.set(Runner, this);
+				const job = new this.jobClass(...this.classParamTypes.map((paramtype) => container.get(paramtype)));
 
 				status = await job.run(
-					...this.argTypes.map((type, index) => {
+					...this.methodParamTypes.map((type, index) => {
 						const arg = args[index];
 						return arg == null || arg === 'null' ? undefined : type.transform(arg);
 					})
@@ -72,13 +59,13 @@ export class Runner {
 				status = false;
 			}
 
-			done = this.scheduler.waiter.done();
+			done = this.waiter.done();
 		} else {
 			mwn.log(`[/] ${jobLabel} was blocked because Rukoto is trying to exit`);
 		}
 
 		if (!done) {
-			mwn.log(`[V] Rukoto is waiting ${this.scheduler.waiter.count} jobs to complete before exiting`);
+			mwn.log(`[V] Rukoto is waiting ${this.waiter.count} jobs to complete before exiting`);
 		}
 
 		return status;

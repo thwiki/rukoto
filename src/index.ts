@@ -3,14 +3,17 @@ import process from 'process';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
 import { mwn } from 'mwn';
-import { name } from '../package.json';
-import { Scheduler, Waiter, Instancer } from './services';
 import { initDiscord, initMediawiki } from './init';
+import { Container } from 'typedi';
+import { Instancer } from './services/instancer';
+import { Scheduler } from './services/scheduler';
+import { Waiter } from './services/waiter';
+import { Messenger } from './services/messenger';
 
 dotenv.config();
 
 (async () => {
-	const instancer = new Instancer(name);
+	const instancer = Container.get(Instancer);
 
 	const canStart = await instancer.lock();
 	if (!canStart) {
@@ -21,18 +24,21 @@ dotenv.config();
 	}
 
 	const messenger = await initDiscord();
+	Container.set(Messenger, messenger);
 
 	mwn.log(`[V] Rukoto is waking up`);
 
 	const bot = await initMediawiki();
+	Container.set(mwn, bot);
 
-	const waiter = new Waiter();
+	const waiter = Container.get(Waiter);
 	waiter.on('block', () => {
 		mwn.log(`[V] Rukoto is waiting ${waiter.count} jobs to complete before exiting`);
 		mwn.log(`[W] You can forcefully exit by exiting again`);
 	});
 
-	new Scheduler(bot, messenger, waiter);
+	const scheduler = Container.get(Scheduler);
+	messenger.command(scheduler);
 
 	mwn.log(`[V] Rukoto is working`);
 
@@ -43,7 +49,7 @@ dotenv.config();
 	} else {
 		mwn.log(`[V] Rukoto is exiting with ${chalk.red(`${chalk.bold(waiter.count)} incompleted job`)}`);
 	}
-	messenger.bot.destroy();
+	await messenger.destroy();
 	await instancer.unlock();
 	process.exit(0);
 })();

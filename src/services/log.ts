@@ -1,7 +1,9 @@
 import { mwn } from 'mwn';
+import { Service } from 'typedi';
 
+@Service({ multiple: true })
 export class Log {
-	constructor(private label: string) {}
+	constructor(private readonly label: string) {}
 
 	success(str: string) {
 		mwn.log(`[S] ${this.label} --${str}`);

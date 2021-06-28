@@ -1,8 +1,8 @@
 import { ParamMetadataArgs, ParamFloatMetadataArgs, ParamIntMetadataArgs, ParamStringMetadataArgs } from './args/param';
 
 export class ParamMetadata {
-	name: string;
-	type: ParamMetadataArgs['type'];
+	readonly name: string;
+	readonly type: ParamMetadataArgs['type'];
 
 	static factory(args: ParamMetadataArgs) {
 		if (args.type === 'string' || args.type === String) {
@@ -47,8 +47,8 @@ export class ParamStringMetadata extends ParamMetadata {
 }
 
 export class ParamIntMetadata extends ParamMetadata {
-	min: number;
-	max: number;
+	readonly min: number;
+	readonly max: number;
 
 	constructor(args: ParamIntMetadataArgs) {
 		super(args);
@@ -71,8 +71,8 @@ export class ParamIntMetadata extends ParamMetadata {
 }
 
 export class ParamFloatMetadata extends ParamMetadata {
-	min: number;
-	max: number;
+	readonly min: number;
+	readonly max: number;
 
 	constructor(args: ParamFloatMetadataArgs) {
 		super(args);

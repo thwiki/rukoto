@@ -1,13 +1,14 @@
 import { mwn } from 'mwn';
 import { Job } from '../decorators';
-import { Log, Token } from '../services';
+import { Log } from '../services/log';
+import { Tokener } from '../services/tokener';
 
 @Job({
 	trigger: '45 5 * * 3',
 	active: false,
 })
 export class CleanSMWJob {
-	constructor(private bot: mwn, private log: Log, private token: Token) {}
+	constructor(private bot: mwn, private log: Log, private token: Tokener) {}
 
 	async run() {
 		const result = (

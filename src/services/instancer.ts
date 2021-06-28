@@ -2,22 +2,22 @@ import fs from 'fs';
 import net from 'net';
 import os from 'os';
 import path from 'path';
+import { Service } from 'typedi';
 
 export interface InstancerOptions {
 	socketPath?: string;
 }
 
+@Service()
 export class Instancer {
-	public name: string;
-	public options: InstancerOptions;
-	private socketPath: string;
+	public readonly name: string;
+	private readonly socketPath: string;
 	private server: net.Server;
 
 	constructor(appName: string, options?: InstancerOptions) {
 		this.name = appName;
-		this.options = options ?? {};
 		this.socketPath =
-			this.options.socketPath ??
+			options?.socketPath ??
 			(process.platform == 'win32' ? '\\\\.\\pipe\\' + appName + '-sock' : path.join(os.tmpdir(), appName + '.sock'));
 		this.server = null;
 	}

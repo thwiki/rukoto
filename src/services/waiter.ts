@@ -1,7 +1,9 @@
 import { EventEmitter } from 'events';
+import { Service } from 'typedi';
 
 const ExitEvent = Symbol('exit');
 
+@Service()
 export class Waiter extends EventEmitter {
 	private _count = 0;
 	private exited = false;

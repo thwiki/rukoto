@@ -1,24 +1,30 @@
 import Discord from 'discord.js';
+import { mwn } from 'mwn';
 import process from 'process';
-import type { Scheduler } from '.';
+import { Inject, Service } from 'typedi';
+import { Scheduler } from './scheduler';
 
 export interface MessengerOptions {
 	token: string;
 	channelId: string;
 }
 
+@Service()
 export class Messenger {
-	private patchedConsole = false;
+	@Inject(() => mwn) private readonly bot: mwn;
 
-	public bot: Discord.Client = null;
+	public discord: Discord.Client = null;
 	public channel: Discord.TextChannel = null;
+	private scheduler: Scheduler;
+
+	private patchedConsole = false;
 
 	static async init(config: MessengerOptions) {
 		const messenger = new Messenger();
 
 		if (config.token === '') return null;
 
-		messenger.bot = await new Promise(async (resolve) => {
+		messenger.discord = await new Promise(async (resolve) => {
 			const bot = new Discord.Client();
 
 			bot.once('ready', () => {
@@ -32,10 +38,10 @@ export class Messenger {
 			}
 		});
 
-		if (messenger.bot == null) return null;
+		if (messenger.discord == null) return null;
 
 		if (config.channelId) {
-			const savedChannel = await messenger.bot.channels.fetch(process.env.DISCORD_CHANNEL_ID);
+			const savedChannel = await messenger.discord.channels.fetch(process.env.DISCORD_CHANNEL_ID);
 			if (savedChannel instanceof Discord.TextChannel) messenger.channel = savedChannel;
 		}
 
@@ -46,13 +52,11 @@ export class Messenger {
 		return messenger;
 	}
 
-	constructor() {}
-
 	private patchConsole() {
 		if (this.patchedConsole) return;
 		this.patchedConsole = true;
 
-		if (this.bot == null || this.channel == null) return;
+		if (this.discord == null || this.channel == null) return;
 
 		const logs: string[] = [];
 		let sendTimeout: NodeJS.Timeout = null;
@@ -93,43 +97,51 @@ export class Messenger {
 	}
 
 	command(scheduler: Scheduler) {
-		const runners = scheduler.activeRunners.filter((runner) => runner.metadata.command);
+		this.scheduler = scheduler;
+		const runners = this.scheduler.activeRunners.filter((runner) => runner.metadata.command);
 
-		if (this.bot == null || this.channel == null || runners.length === 0) return;
+		if (this.discord == null || this.channel == null || runners.length === 0) return;
+
 		const channelId = process.env.DISCORD_CHANNEL_ID;
 
-		this.bot.on('message', async (msg: Discord.Message) => {
-			if (msg.channel.id !== channelId) return;
+		this.discord.on('message', async (msg: Discord.Message) => {
+			if (msg.author.bot || msg.channel.id !== channelId || !msg.content.startsWith('!')) return;
 
-			if (msg.content === '!restart') {
+			const [command, ...args] = msg.content.split(/\s+/);
+
+			if (command === '!restart') {
 				await msg.reply(`\`\`\`ini\n[V] Trying to restart\n\`\`\``);
-				scheduler.waiter.exit();
+				this.scheduler.waiter.exit();
 				return;
 			}
-			if (msg.content === '!run') {
-				await msg.reply(
-					`\`\`\`ini\n[Available Jobs]\n${runners
-						.map(
-							(runner) =>
-								`!run ${runner.metadata.command}${runner.argTypes.map((argType) => ` [${argType.toString()}]`).join('')}`
-						)
-						.join('\n')}\n\`\`\``
-				);
-				return;
-			}
-			if (!msg.content.startsWith('!run ')) return;
 
-			const [_, command, ...args] = msg.content.split(/\s+/);
-			if (command === '') {
-				await msg.reply(`\`\`\`ini\n[E] Invalid job name="${command}"\n\`\`\``);
-				return;
+			if (command === '!run') {
+				const jobName = args.shift();
+				if (jobName == null || jobName === '') {
+					await msg.reply(
+						`\`\`\`ini\n[Available Jobs]\n${runners
+							.map(
+								(runner) =>
+									`!run ${runner.metadata.command}${runner.methodParamTypes
+										.map((argType) => ` [${argType.toString()}]`)
+										.join('')}`
+							)
+							.join('\n')}\n\`\`\``
+					);
+					return;
+				}
+
+				const runner = runners.find((runner) => runner.metadata.command === jobName);
+				if (runner == null) {
+					await msg.reply(`\`\`\`ini\n[E] Failed to run unknown job="${jobName}"\n\`\`\``);
+					return;
+				}
+				runner.run(...args);
 			}
-			const runner = runners.find((runner) => runner.metadata.command === command);
-			if (runner == null) {
-				await msg.reply(`\`\`\`ini\n[E] Failed to run unknown job="${command}"\n\`\`\``);
-				return;
-			}
-			runner.run(...args);
 		});
+	}
+
+	async destroy() {
+		this.discord.destroy();
 	}
 }

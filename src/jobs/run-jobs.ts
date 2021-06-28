@@ -1,6 +1,7 @@
 import { mwn } from 'mwn';
 import { Job, Param } from '../decorators';
-import { Log, Token } from '../services';
+import { Log } from '../services/log';
+import { Tokener } from '../services/tokener';
 
 interface MediawikiJobStatus {
 	jobs: MediawikiJob[];
@@ -22,7 +23,7 @@ interface MediawikiJob {
 	active: true,
 })
 export class RunJobsJob {
-	constructor(private bot: mwn, private log: Log, private token: Token) {}
+	constructor(private bot: mwn, private log: Log, private token: Tokener) {}
 
 	async run(@Param({ name: 'maxJobs', type: 'int', min: 0, max: 1000 }) maxJobs: number = 1000) {
 		let pendingJobs: number =

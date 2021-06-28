@@ -1,6 +1,6 @@
 import { mwn } from 'mwn';
 import { version } from 'os';
-import { Messenger } from './services';
+import { Messenger } from './services/messenger';
 
 export async function initMediawiki() {
 	mwn.log(`[i] Initializing connection to THBWiki`);

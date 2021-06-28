@@ -1,9 +1,11 @@
 import { mwn } from 'mwn';
+import { Service } from 'typedi';
 
-type TokenType = 'createaccount' | 'csrf' | 'login' | 'maintenance' | 'patrol' | 'rollback' | 'userrights' | 'watch';
+export type TokenType = 'createaccount' | 'csrf' | 'login' | 'maintenance' | 'patrol' | 'rollback' | 'userrights' | 'watch';
 
-export class Token {
-	constructor(private bot: mwn) {}
+@Service()
+export class Tokener {
+	constructor(private readonly bot: mwn) {}
 
 	async get(type: TokenType): Promise<string> {
 		return (

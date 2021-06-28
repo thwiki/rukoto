@@ -1,6 +1,7 @@
 import { mwn } from 'mwn';
 import { Job } from '../decorators';
-import { Log, Token } from '../services';
+import { Log } from '../services/log';
+import { Tokener } from '../services/tokener';
 
 @Job({
 	trigger: '25 */2 * * *',
@@ -8,7 +9,7 @@ import { Log, Token } from '../services';
 	active: true,
 })
 export class RefreshAutoDataJob {
-	constructor(private bot: mwn, private log: Log, private token: Token) {}
+	constructor(private bot: mwn, private log: Log, private token: Tokener) {}
 
 	async run() {
 		const result = (
