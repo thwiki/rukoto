@@ -39,7 +39,7 @@ dotenv.config();
 	});
 
 	const scheduler = Container.get(Scheduler);
-	messenger.command(scheduler);
+	messenger?.command(scheduler);
 
 	mwn.log(`[V] Rukoto is working (${chalk.cyan(`version ${version}`)})`);
 
@@ -50,7 +50,7 @@ dotenv.config();
 	} else {
 		mwn.log(`[V] Rukoto is exiting with ${chalk.red(`${chalk.bold(waiter.count)} incompleted job`)}`);
 	}
-	await messenger.destroy();
+	await messenger?.destroy();
 	await instancer.unlock();
 	process.exit(0);
 })();

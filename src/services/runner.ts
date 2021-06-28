@@ -35,7 +35,11 @@ export class Runner {
 				const container = Container.of(jobName);
 				container.set(Log, new Log(jobLabel));
 				container.set(Runner, this);
-				const job = new this.jobClass(...this.classParamTypes.map((paramtype) => container.get(paramtype)));
+				const job = new this.jobClass(
+					...this.classParamTypes.map((paramtype) =>
+						container.has(paramtype) ? container.get(paramtype) : Container.get(paramtype)
+					)
+				);
 
 				status = await job.run(
 					...this.methodParamTypes.map((type, index) => {

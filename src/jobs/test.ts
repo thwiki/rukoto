@@ -33,6 +33,7 @@ export class TestJob {
 		@Param({ name: 'count', type: 'int', min: 0, max: 100 }) count = 1,
 		@Param({ name: 'interval', type: 'int', min: 1000, max: 60000 }) interval = 1000
 	) {
+		this.log.verbose(`Connected to ${this.bot.options.apiUrl}`);
 		this.checkService('bot', mwn);
 		this.checkService('log', Log);
 		this.checkService('github', Github);
@@ -41,7 +42,7 @@ export class TestJob {
 		this.checkService('runner', Runner);
 
 		while (count-- > 0) {
-			this.log.verbose(`countdown ${count}`);
+			this.log.verbose(`Countdown ${count}`);
 			await wait(interval);
 		}
 		return true;

@@ -6,6 +6,7 @@ module.exports = {
 			watch: false,
 			wait_ready: true,
 			autorestart: true,
+			args: ['--color'],
 			env: {},
 		},
 	],
