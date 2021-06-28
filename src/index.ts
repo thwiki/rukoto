@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import process from 'process';
+import { version } from '../package.json';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
 import { mwn } from 'mwn';
@@ -40,7 +41,7 @@ dotenv.config();
 	const scheduler = Container.get(Scheduler);
 	messenger.command(scheduler);
 
-	mwn.log(`[V] Rukoto is working`);
+	mwn.log(`[V] Rukoto is working (${chalk.cyan(`version ${version}`)})`);
 
 	process?.send?.('ready');
 

@@ -1,5 +1,5 @@
 import { mwn } from 'mwn';
-import { version } from 'os';
+import { version } from '../package.json';
 import { Messenger } from './services/messenger';
 
 export async function initMediawiki() {
