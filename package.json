@@ -1,6 +1,6 @@
 {
 	"name": "rukoto",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"description": "Rukoto - The Almighty THBWiki Bot",
 	"main": "index.js",
 	"scripts": {
