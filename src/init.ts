@@ -17,10 +17,6 @@ export async function initMediawiki() {
 
 		userAgent: `Rukoto ${version}`,
 
-		defaultParams: {
-			assert: 'user',
-		},
-
 		silent: false,
 		retryPause: 5000,
 		maxRetries: 3,
