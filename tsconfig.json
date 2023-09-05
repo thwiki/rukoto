@@ -1,7 +1,6 @@
 {
 	"compileOnSave": true,
 	"compilerOptions": {
-		"watch": false,
 		"module": "commonjs",
 		"downlevelIteration": true,
 		"outDir": "./dist",

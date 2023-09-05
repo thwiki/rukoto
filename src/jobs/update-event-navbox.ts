@@ -138,11 +138,14 @@ export class UpdateEventNavboxJob {
 		onlineEvents.sort(compareEvent);
 		onlineConventions.sort(compareEvent);
 
-		await this.bot.save(
+		/*await this.bot.save(
 			'沙盒',
 			this.generateEventNavbox(offlineConventions, offlineEvents, onlineConventions, onlineEvents),
 			'更新展会活动导航'
-		);
+		);*/
+
+		await this.bot.save('模板:展会活动导航', this.generateConventionsNavbox(offlineConventions, onlineConventions), '更新展会活动导航');
+		await this.bot.save('模板:非展会活动导航', this.generateEventsNavbox(offlineEvents, onlineEvents), '更新活动导航');
 
 		return true;
 	}
@@ -231,6 +234,42 @@ export class UpdateEventNavboxJob {
 		text += this.generateEventNavboxChild(onlineEvents, '分类:活动类型分类', '线上其他类型活动');
 
 		text += '	}}\n';
+		text += '}}';
+		text += '<noinclude>[[分类:导航栏模板]]</noinclude>';
+
+		return text;
+	}
+
+	private generateConventionsNavbox(offlineConventions: EventPage[], onlineConventions: EventPage[]) {
+		let text = '<fixed move />\n';
+		text += '{{Navbox\n';
+		text += '	|name = 展会活动导航\n';
+		text += '	|title = 展会及活动导航\n';
+		text += '	|above = {{展会活动导航/介绍}}\n';
+		text += '	|class = nav-misc\n';
+		text += '	|state = {{{state|<noinclude>uncollapsed</noinclude>}}}\n';
+		text += '	|list1 = \n';
+		text += this.generateEventNavboxChild(offlineConventions, '分类:展会类活动', '线下展会活动');
+		text += '	|list2 = \n';
+		text += this.generateEventNavboxChild(onlineConventions, '分类:展会类活动', '线上展会活动');
+		text += '}}';
+		text += '<noinclude>[[分类:导航栏模板]]</noinclude>';
+
+		return text;
+	}
+
+	private generateEventsNavbox(offlineEvents: EventPage[], onlineEvents: EventPage[]) {
+		let text = '<fixed move />\n';
+		text += '{{Navbox\n';
+		text += '	|name = 非展会活动导航\n';
+		text += '	|title = 非展会活动导航\n';
+		text += '	|above = {{非展会活动导航/介绍}}\n';
+		text += '	|class = nav-misc\n';
+		text += '	|state = {{{state|<noinclude>uncollapsed</noinclude>}}}\n';
+		text += '	|list1 = \n';
+		text += this.generateEventNavboxChild(offlineEvents, '分类:活动类型分类', '线下非展会活动');
+		text += '	|list2 = \n';
+		text += this.generateEventNavboxChild(onlineEvents, '分类:活动类型分类', '线上非展会活动');
 		text += '}}';
 		text += '<noinclude>[[分类:导航栏模板]]</noinclude>';
 
