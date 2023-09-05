@@ -9,6 +9,7 @@ interface EventPage {
 		展会角色: { fulltext: string }[];
 		展会作品: { fulltext: string }[];
 		展会地区: { fulltext: string }[];
+		展会城市: { fulltext: string }[];
 	};
 	fulltext: string;
 	fullurl: string;
@@ -109,7 +110,7 @@ export class UpdateEventNavboxJob {
 			return [];
 		});
 
-		this.countryList = (await this.bot.getPagesInCategory('活动举办地区分类‎')).map((country) =>
+		this.countryList = (await this.bot.getPagesInCategory('活动举办地区分类')).map((country) =>
 			this.bot.title.newFromText(country).getMainText()
 		);
 		this.workList = workList;
@@ -138,7 +139,7 @@ export class UpdateEventNavboxJob {
 		onlineConventions.sort(compareEvent);
 
 		await this.bot.save(
-			'模板:展会活动导航',
+			'沙盒',
 			this.generateEventNavbox(offlineConventions, offlineEvents, onlineConventions, onlineEvents),
 			'更新展会活动导航'
 		);
@@ -154,8 +155,8 @@ export class UpdateEventNavboxJob {
 						action: 'askargs',
 						format: 'json',
 						conditions,
-						printouts: '展会角色|展会作品|展会地区',
-						parameters: 'limit=500',
+						printouts: '展会角色|展会作品|展会地区|展会城市',
+						parameters: 'limit=5000',
 					})
 				).query.results
 			) as EventPage[]
@@ -279,7 +280,7 @@ export class UpdateEventNavboxJob {
 			const countries = this.countryList
 				.filter((country) => categories.includes(country))
 				.map((country) => country.replace(/展会|活动/g, ''));
-			if (countries.length === 0) countries.push('未归类');
+			if (countries.length === 0) countries.push('其他地区');
 
 			const thing: EventThing = {
 				page: event,
@@ -385,20 +386,20 @@ export class UpdateEventNavboxJob {
 				} else {
 					if (categories.includes('地区Only展会') || categories.includes('地区Only活动')) {
 						const regions = event.printouts.展会地区.map(({ fulltext }) => fulltext);
+						const cities = event.printouts.展会城市.map(({ fulltext }) => fulltext);
 						let others = true;
-						thing['city'] = regions.filter((region) => !region.endsWith('地方') && !region.endsWith('地区'));
+						thing['city'] = cities;
 						for (const region of regions) {
 							if (region.endsWith('地区')) {
 								pushToMap(categorized['中国']['东方']['地区'], region, thing);
 								others = false;
 							}
 						}
-						if (others) {
-							for (const region of regions) {
-								if (!region.endsWith('地方') && !region.endsWith('地区'))
-									pushToMap(categorized['中国']['东方']['地区'], region, thing);
+						/*if (others) {
+							for (const city of cities) {
+								pushToMap(categorized['中国']['东方']['地区'], city, thing);
 							}
-						}
+						}*/
 					}
 					if (!categories.includes('地区Only展会') && !categories.includes('地区Only活动')) {
 						if (categories.includes('东方Only展会') || categories.includes('东方Only活动')) {
@@ -536,7 +537,7 @@ export class UpdateEventNavboxJob {
 						categorized['中国']['普通'].map((event) => [
 							event.page.fulltext,
 							event.cover,
-							joinCover(event.page.printouts.展会地区.map(({ fulltext }) => fulltext).filter((v) => !v.endsWith('地区'))),
+							joinCover(event.page.printouts.展会城市.map(({ fulltext }) => fulltext).filter((v) => !v.endsWith('地区'))),
 						])
 					) + '\n';
 			}
@@ -606,7 +607,7 @@ export class UpdateEventNavboxJob {
 						regionEvents.map((event) => [
 							event.page.fulltext,
 							event.cover,
-							joinCover(event.page.printouts.展会地区.map(({ fulltext }) => fulltext).filter((v) => !v.endsWith('地方'))),
+							joinCover(event.page.printouts.展会城市.map(({ fulltext }) => fulltext).filter((v) => !v.endsWith('地方'))),
 						])
 					) + '\n';
 				text += '					|group' + list3Counter + ' = 东方限定\n';
@@ -618,7 +619,7 @@ export class UpdateEventNavboxJob {
 						regionOnlyEvents.map((event) => [
 							event.page.fulltext,
 							event.cover,
-							joinCover(event.page.printouts.展会地区.map(({ fulltext }) => fulltext).filter((v) => !v.endsWith('地方'))),
+							joinCover(event.page.printouts.展会城市.map(({ fulltext }) => fulltext).filter((v) => !v.endsWith('地方'))),
 						])
 					) + '\n';
 				++$index;
