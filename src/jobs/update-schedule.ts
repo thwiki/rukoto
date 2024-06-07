@@ -5,7 +5,7 @@ import { Job } from '../decorators';
 @Job({
 	trigger: '40 2 * * *',
 	command: 'update-schedule',
-	active: true,
+	active: false,
 })
 export class UpdateScheduleJob {
 	private currentTime: DateTime;

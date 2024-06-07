@@ -6,6 +6,7 @@ const natsort = natsortGen();
 
 interface EventPage {
 	printouts: {
+		活动译名: string[];
 		展会角色: { fulltext: string }[];
 		展会作品: { fulltext: string }[];
 		展会地区: { fulltext: string }[];
@@ -138,12 +139,6 @@ export class UpdateEventNavboxJob {
 		onlineEvents.sort(compareEvent);
 		onlineConventions.sort(compareEvent);
 
-		/*await this.bot.save(
-			'沙盒',
-			this.generateEventNavbox(offlineConventions, offlineEvents, onlineConventions, onlineEvents),
-			'更新展会活动导航'
-		);*/
-
 		await this.bot.save('模板:展会活动导航', this.generateConventionsNavbox(offlineConventions, onlineConventions), '更新展会活动导航');
 		await this.bot.save('模板:非展会活动导航', this.generateEventsNavbox(offlineEvents, onlineEvents), '更新活动导航');
 
@@ -158,7 +153,7 @@ export class UpdateEventNavboxJob {
 						action: 'askargs',
 						format: 'json',
 						conditions,
-						printouts: '展会角色|展会作品|展会地区|展会城市',
+						printouts: '活动译名|展会角色|展会作品|展会地区|展会城市',
 						parameters: 'limit=5000',
 					})
 				).query.results
@@ -325,7 +320,7 @@ export class UpdateEventNavboxJob {
 				page: event,
 				categories,
 				countries,
-				cover: event.fulltext.replace(/（(展会|活动)）/, ''),
+				cover: event.printouts.活动译名?.filter((name) => name !== '')?.[0] ?? event.fulltext.replace(/（(展会|活动)）/, ''),
 			};
 
 			if (countries.includes('日本')) {
@@ -434,11 +429,6 @@ export class UpdateEventNavboxJob {
 								others = false;
 							}
 						}
-						/*if (others) {
-							for (const city of cities) {
-								pushToMap(categorized['中国']['东方']['地区'], city, thing);
-							}
-						}*/
 					}
 					if (!categories.includes('地区Only展会') && !categories.includes('地区Only活动')) {
 						if (categories.includes('东方Only展会') || categories.includes('东方Only活动')) {
